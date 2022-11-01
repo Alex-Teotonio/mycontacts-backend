@@ -1,60 +1,69 @@
-//index => Listar registros
-//show => Obter registros
-//store = > Criar registros
-//update => Atualizar registros
-//delete => Deletar registros
+// index => Listar registros
+// show => Obter registros
+// store = > Criar registros
+// update => Atualizar registros
+// delete => Deletar registros
 
-const ContactRepository = require("../repositories/ContactRepository")
+const ContactRepository = require('../repositories/ContactRepository');
 
 class ContactController {
-    async index(request, response) {
+  async index(request, response) {
+    response.json(await ContactRepository.findAll());
+  }
 
-        response.json(await ContactRepository.findAll());
+  async show(request, response) {
+    const { id } = request.params;
+
+    const contact = await ContactRepository.findById(id);
+
+    if (!contact) {
+      return response.status(404).json({ error: 'User not found' });
     }
+    response.json(contact);
+  }
 
-    async show(request, response) {
+  async delete(request, response) {
+    const { id } = request.params;
 
-        const {id} = request.params;
+    await ContactRepository.delete(id);
+    // 204 => No content.
+    response.sendStatus(204);
+  }
 
-        const contact = await ContactRepository.findById(id);
+  async store(request, response) {
+    const {
+      name, email, phone, category_id,
+    } = request.body;
+    // const emailExists = await ContactRepository.findByEmail(email);
 
-        if(!contact) {
-            return response.status(404).json({error: "User not found"});
-        }
-        response.json(contact);
+    // if (emailExists) {
+    //   return response.status(404).json({ error: 'Email is already exists' });
+    // }
+
+    const newContact = await ContactRepository.create(name, email, phone, category_id);
+
+    return response.json(newContact);
+  }
+
+  async update(request, response) {
+    const {
+      name, email, phone, category_id,
+    } = request.body;
+
+    const { id } = request.params;
+
+    const contactExistis = ContactRepository.findById(id);
+
+    if (!contactExistis) {
+      return response.status(404).json({ error: 'User not found' });
     }
+    const newContactUpdate = await ContactRepository.update(id, {
+      name, email, phone, category_id,
+    });
 
-    async delete(request, response) {
-
-        const {id} = request.params;
-
-        const contact = await ContactRepository.findById(id);
-
-        if(!contact) {
-            return response.status(404).json({error: "User not found"});
-        }
-
-        await ContactRepository.delete(id);
-        //204 => No content.
-        response.sendStatus(204);
-    }
-    
-    async store(request, response) {
-
-        const {name, email,phone,category_id} = request.body;
-        console.log(name, email,phone,category_id);
-        const emailExists = await ContactRepository.findByEmail(email);
-
-        if(emailExists) {
-            return response.status(404).json({error: "Email is already exists"});
-        }
-
-        const newContact = await ContactRepository.create(name, email,phone,category_id);
-
-        return response.json(newContact);
-    }
-
+    return response.json(newContactUpdate);
+  }
 }
 
-//Aplicando pattern Singleton => A classe em questão só pode ser instanciada uma vez
+// Aplicando pattern Singleton => A classe em questão só pode ser instanciada uma vez
 module.exports = new ContactController();
