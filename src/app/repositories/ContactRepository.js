@@ -1,8 +1,9 @@
 const db = require('../../database');
 
 class ContactRepository {
-  async findAll() {
-    const rows = await db.query('SELECT con.*,cat.name as category_name FROM  contacts as con LEFT JOIN categories as cat on con.category_id = cat.id ORDER BY con.name ASC;');
+  async findAll(orderBy = 'asc') {
+    const isOrderBy = orderBy === 'desc' ? 'desc' : 'asc';
+    const rows = await db.query(`SELECT con.*,cat.name as category_name FROM  contacts as con LEFT JOIN categories as cat on con.category_id = cat.id ORDER BY con.name ${isOrderBy};`);
     return rows;
   }
 
